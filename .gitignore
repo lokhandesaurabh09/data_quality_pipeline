@@ -1,0 +1,14 @@
+#python virtual environment 
+venv/
+__pycache__/
+*.pyc
+
+#local databases and storage
+*.db
+
+#raw data and large files(keep raw data local)
+data/raw/
+data/processed/
+
+#local execution reports
+reports/
