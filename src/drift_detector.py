@@ -1,11 +1,15 @@
 import pandas as pd
 import numpy as np
 
-def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold: float = 0.15) -> dict:
+def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold: float = 0.15, exclude_cols: list = None) -> dict:
     print("Running data drift detection analysis....")
-    drift_report = {}
 
+    if exclude_cols is None:
+        exclude_cols = ['id', 'host_id']
+
+    drift_report = {}
     numeric_cols = baseline_df.select_dtypes(include=[np.number]).columns
+    numeric_cols = [col for col in numeric_cols if col not in exclude_cols]
 
     overall_drift_detected = False
 
@@ -36,8 +40,9 @@ def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold:
                 print(f" -> Column '{col}' is stable.")
 
     drift_report["summary"] = {
-        "overall_drift_status": overall_drift_detected,
-        "threshold_used": threshold
+        "overall_drift_status": bool(overall_drift_detected),
+        "threshold_used": float(threshold),
+        "excluded_columns": exclude_cols
     }
     return drift_report
 

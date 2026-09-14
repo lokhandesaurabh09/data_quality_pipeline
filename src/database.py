@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-def save_to_database(df: pd.DataFrame, db_name: str = "pipeline_storage.db", table_name : str = "cleaned_aribnb_data"):
+def save_to_database(df: pd.DataFrame, db_name: str = "pipeline_storage.db", table_name : str = "cleaned_airbnb_data"):
 
     print(f"Saving cleaned data to SQL database ('{db_name}'), table: '{table_name}'....")
 
