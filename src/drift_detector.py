@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
+from src.logger import setup_logger
+
+logger = setup_logger("drift_detector")
 
 def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold: float = 0.15, exclude_cols: list = None) -> dict:
-    print("Running data drift detection analysis....")
+    logger.info("Running data drift detection analysis....")
 
     if exclude_cols is None:
         exclude_cols = ['id', 'host_id']
@@ -35,9 +38,9 @@ def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold:
             }
 
             if is_drift:
-                print(f" -> [DRIFT ALERT] Column '{col}' shifted by {drift_report[col]['pct_change_percent']}%!")
+                logger.warning(f"Column '{col}' drifted by {drift_report[col]['pct_change_percent']}%! (Threshold: {threshold * 100}%)")
             else:
-                print(f" -> Column '{col}' is stable.")
+                logger.info(f"Column '{col}' is stable.")
 
     drift_report["summary"] = {
         "overall_drift_status": bool(overall_drift_detected),

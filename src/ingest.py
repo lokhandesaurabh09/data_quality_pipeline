@@ -1,18 +1,23 @@
 import pandas as pd
 import os
+from src.logger import setup_logger
+
+logger = setup_logger("ingest")
 
 def load_raw_data(file_path : str) -> pd.DataFrame:
 
+    logger.info(f"Loading raw dataset from '{file_path}'....")
+
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Error: The file at '{file_path}' was not found. Please check your path.")
+        raise FileNotFoundError(f"File not found at path: '{file_path}'")
 
     try:
         df = pd.read_csv(file_path)
-        print(f"Successfully loaded dataset from '{file_path}' with {df.shape[0]} rows and {df.shape[1]} columns.")
+        logger.info(f"Successfully loaded dataset with {len(df)} rows and {len(df.columns)} columns.")
         return df
     
     except Exception as e:
-        print(f"An error occurred while reading the CSV file: {e}")
+        logger.error(f"Failed to load dataset from '{file_path}': {e}")
         raise e
 
 if __name__ ==  "__main__":

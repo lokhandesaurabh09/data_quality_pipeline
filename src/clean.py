@@ -1,40 +1,33 @@
 import pandas as pd
 import numpy as np
+from src.logger import setup_logger
+
+logger = setup_logger("clean")
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
-    print("Starting data cleaning process....")
-    initial_row_count = len(df)
+    logger.info("Starting data cleaning process....")
+    df = df.copy()
 
-    df = df.rename(columns = lambda x: x.strip())
+    if 'reviews_per_month' in df.columns:
+        median_val = df['reviews_per_month'].median()
+        df['reviews_per_month'] = df['reviews_per_month'].fillna(median_val)
+        logger.info(f"Filled missing values in 'reviews_per_month' with median: {round(median_val, 2)}")
 
-    object_cols = df.select_dtypes(include = ['object']).columns
-    for col in object_cols:
-        df[col] = df[col].astype(str).str.strip()
-        df[col] = df[col].replace(['nan', 'None', ''], np.nan)
+    text_cols = ['name', 'host_name', 'last_review']
+    for col in text_cols:
+        if col in df.columns:
+            df[col] = df[col].fillna('Unknown')
+            logger.info(f"Filled missing values in text column '{col}' with 'Unknown'")
 
-    numeric_cols = df.select_dtypes(include = [np.number]).columns
-    for col in numeric_cols:
-        if df[col].isnull().sum() > 0:
-            median_val = df[col].median()
-            df[col] = df[col].fillna(median_val)
-            print(f" -> Filled missing values in numeric columns '{col}' with median: {median_val}")
-
-    for col in object_cols:
-        if df[col].isnull().sum() > 0:
-            df[col] = df[col].fillna("Unknown")
-            print(f" -> Filled missing values in text column '{col}' with 'Unknown'")
-
+    initial_count = len(df)
     df = df.drop_duplicates()
-    duplicates_removed = initial_row_count - len(df)
+    duplicated_removed = initial_count - len(df)
+    logger.info(f"Cleaning complete! Removed {duplicated_removed} duplicate rows")
 
-    assert len(df) > 0, "Data Quality Error: The dataset is completely empty after cleaning!!"
-
-    print(f"Cleaning complete! Removed! Removed {duplicates_removed} duplicateds.")
     return df
 
 if __name__ == "__main__":
-
     from ingest import load_raw_data
     raw_df = load_raw_data("data/raw/AB_NYC_2019.csv")
     cleaned_df = clean_data(raw_df)

@@ -1,20 +1,29 @@
 import pandas as pd
 from sqlalchemy import create_engine
+from datetime import datetime
+import os 
+from src.logger import setup_logger
 
-def save_to_database(df: pd.DataFrame, db_name: str = "pipeline_storage.db", table_name : str = "cleaned_airbnb_data"):
+logger = setup_logger("database")
 
-    print(f"Saving cleaned data to SQL database ('{db_name}'), table: '{table_name}'....")
+def get_database_engine(db_path: str = "sqlite:///pipeline_storage.db"):
+    return create_engine(db_path)
 
-    engine = create_engine(f"sqlite:///{db_name}")
+def save_to_database(df: pd.DataFrame, table_name : str = "cleaned_airbnb_data", db_path: str = "sqlite:///pipeline_storage.db"):
 
-    df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+    logger.info(f"Saving cleaned data to SQL database (Append Mode + Versioning), table: '{table_name}'....")
 
-    print(f"Successfully loaded {len(df)} rows into the SQL database table '{table_name}'.")
+    run_time = datetime.now()
+    df = df.copy()
+    df['ingestion_timestamp'] = run_time
+    df['batch_id'] = run_time.strftime('%Y%m%d_%H%M%S')
+
+    engine = get_database_engine(db_path)
+
+    df.to_sql(table_name, con=engine, if_exists='append', index=False)
+
+    logger.info(f"Successfully appended {len(df)} rows into table '{table_name}' with Batch ID: {df['batch_id'].iloc[0]}.")
 
 if __name__ == "__main__":
-    from ingest import load_raw_data
-    from clean import clean_data
-
-    raw_df = load_raw_data("data/raw/AB_NYC_2019.csv")
-    cleaned_df = clean_data(raw_df)
-    save_to_database(cleaned_df)
+    test_df = pd.DataFrame({'id': [1,2], 'price':[100, 200]})
+    save_to_database(test_df)
