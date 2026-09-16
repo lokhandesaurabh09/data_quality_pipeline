@@ -51,11 +51,12 @@ def run_pipeline():
         pipeline_summary["metrics"]["cleaned_rows"] = len(cleaned_df)
         pipeline_summary["metrics"]["duplicates_removed"] = (len(raw_df) - len(cleaned_df))
 
-        baseline_df = load_raw_data(paths["baseline_path"])
+        baseline_df = load_raw_data(paths["baseline_data_path"])
         drift_report = detect_drift(
             baseline_df,
             cleaned_df,
             threshold=drift_params["threshold"],
+            z_threshold=drift_params.get("z_threshold", 1.96),
             exclude_cols=drift_params["exclude_cols"]
         )
         pipeline_summary["metrics"]["drift_report"] = drift_report
@@ -83,7 +84,7 @@ def run_pipeline():
         reports_dir = paths.get("reports_dir", "reports")
         os.makedirs(reports_dir, exist_ok=True)
         report_filename = os.path.join(reports_dir, f"pipeline_report_{timestamp_str}.json")
-        
+
         with open(report_filename, 'w') as f:
             json.dump(pipeline_summary, f, indent = 4)
         logger.info(f"Summary audit report saved to: {report_filename}")
