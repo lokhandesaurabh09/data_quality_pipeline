@@ -1,0 +1,14 @@
+{
+    "paths":{
+        "raw_data_path": "data/raw/AB_NYC_2019.csv",
+        "baseline_data_path": "data/processed/baseline.csv",
+        "db_connection_string": "sqlite:///pipeline_storage.db",
+        "table_name": "cleaned_airbnb_data",
+        "reports_dir": "reports",
+        "logs_dir": "logs"
+    },
+    "drift_parameters": {
+        "threshold": 0.15,
+        "exclude_cols": ["id", "host_id"]
+    }
+}

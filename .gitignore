@@ -12,3 +12,7 @@ data/processed/
 
 #local execution reports
 reports/
+
+logs/
+*.log
+__pycache__/
