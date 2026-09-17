@@ -4,31 +4,45 @@ from src.logger import setup_logger
 
 logger = setup_logger("clean")
 
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+def clean_data(df: pd.DataFrame, rules: dict = None) -> pd.DataFrame:
 
     logger.info("Starting data cleaning process....")
     df = df.copy()
+    initial_row_count = len(df)
 
-    if 'reviews_per_month' in df.columns:
-        median_val = df['reviews_per_month'].median()
-        df['reviews_per_month'] = df['reviews_per_month'].fillna(median_val)
-        logger.info(f"Filled missing values in 'reviews_per_month' with median: {round(median_val, 2)}")
+    if rules is None:
+        rules = {
+            "drop_duplicates": True,
+            "numeric_imputation_strategy": "median",
+            "categorical_fill_value": "Unknown"
+        }
 
-    text_cols = ['name', 'host_name', 'last_review']
-    for col in text_cols:
-        if col in df.columns:
-            df[col] = df[col].fillna('Unknown')
-            logger.info(f"Filled missing values in text column '{col}' with 'Unknown'")
+    if rules.get("drop_duplicates", True):
+        df = df.drop_duplicates()
+        duplicates_removed = initial_row_count - len(df)
+        logger.info(f"Duplicate Removal: Removed {duplicates_removed} duplicate rows.")
 
-    initial_count = len(df)
-    df = df.drop_duplicates()
-    duplicated_removed = initial_count - len(df)
-    logger.info(f"Cleaning complete! Removed {duplicated_removed} duplicate rows")
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    strategy = rules.get("numeric_imputation_strategy", "median")
 
+    for col in numeric_cols:
+        if df[col].isnull().any():
+            if strategy == "mean":
+                fill_val = df[col].mean()
+            else:
+                fill_val = df[col].median()
+
+            df[col] = df[col].fillna(fill_val)
+            logger.info(f"Imputed missing values in numeric column '{col}' using {strategy}: {round(fill_val, 4)}")
+
+    categorical_cols = df.select_dtypes(include=['object', 'category', 'string']).columns
+    fill_text = rules.get("categorical_fill_value", "Unknown")
+
+    for col in categorical_cols:
+        if df[col].isnull().any():
+            df[col] = df[col].fillna(fill_text)
+            logger.info(f"Filled missing values in text column '{col}' with '{fill_text}'.")
+
+    logger.info(f"Data Cleaning complete! Final dataset shape: {df.shape}")
     return df
 
-if __name__ == "__main__":
-    from ingest import load_raw_data
-    raw_df = load_raw_data("data/raw/AB_NYC_2019.csv")
-    cleaned_df = clean_data(raw_df)
-    print("Cleaned shape: ", cleaned_df.shape)

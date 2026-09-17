@@ -5,6 +5,7 @@ from datetime import datetime
 from src.logger import setup_logger
 from src.ingest import load_raw_data
 from src.clean import clean_data
+from src.validate import validate_data
 from src.drift_detector import detect_drift
 from src.database import save_to_database
 
@@ -23,34 +24,38 @@ def run_pipeline():
     logger.info("Starting Automated Data Pipeline Run")
     logger.info("=" * 50)
 
+    reports_dir = "reports"
+    timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    pipeline_summary = {
+        "run_timestamp": datetime.now().isoformat(),
+        "status": "UNKNOWN",
+        "error": None,
+        "metrics": {}
+        }
+
     try:
         config = load_config()
         paths = config["paths"]
         drift_params = config["drift_parameters"]
+        validation_rules = config.get("validation_rules", {})
         logger.info("Successfully loaded pipeline configuration from 'config.json'.")
     except Exception as e:
         logger.error(f"Failed to load configuration: {e}")
         return
-
-    run_time = datetime.now()
-    timestamp_str = run_time.strftime('%Y%m%d_%H%M%S')
-
-    pipeline_summary = {
-        "run_timestamp": run_time.isoformat(),
-        "status": "UNKNOWN",
-        "error": None,
-        "metrics": {}
-    }
-
+   
     try:
         raw_df = load_raw_data(paths["raw_data_path"])
         pipeline_summary["metrics"]["raw_rows"] = len(raw_df)
         pipeline_summary["metrics"]["raw_columns"] = len(raw_df.columns)
 
-        cleaned_df = clean_data(raw_df)
+        validate_data(raw_df, validation_rules)
+        pipeline_summary["metrics"]["validation_status"] = "PASSED"
+
+        cleaning_rules = config.get("cleaning_rules", {})
+        cleaned_df = clean_data(raw_df, cleaning_rules)
         pipeline_summary["metrics"]["cleaned_rows"] = len(cleaned_df)
         pipeline_summary["metrics"]["duplicates_removed"] = (len(raw_df) - len(cleaned_df))
-
+        
         baseline_df = load_raw_data(paths["baseline_data_path"])
         drift_report = detect_drift(
             baseline_df,

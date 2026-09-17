@@ -51,7 +51,7 @@ def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold:
                 "drift_trigger":(
                     "both" if is_pct_drift and is_z_drift else
                     "pct_change" if is_pct_drift else
-                    "z_score" if is_drift else
+                    "z_score" if is_z_drift else
                     "none"
                 )
             }
@@ -75,8 +75,8 @@ def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold:
     return drift_report
 
 if __name__ == "__main__":
-    from ingest import load_raw_data
-    from clean import clean_data
+    from src.ingest import load_raw_data
+    from src.clean import clean_data
 
     baseline = load_raw_data("data/processed/baseline.csv")
     raw_current = load_raw_data("data/raw/AB_NYC_2019.csv")

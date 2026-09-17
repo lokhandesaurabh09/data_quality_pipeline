@@ -3,13 +3,24 @@
         "raw_data_path": "data/raw/AB_NYC_2019.csv",
         "baseline_data_path": "data/processed/baseline.csv",
         "db_connection_string": "sqlite:///pipeline_storage.db",
-        "table_name": "cleaned_airbnb_data",
+        "table_name": "cleaned_dataset",
         "reports_dir": "reports",
         "logs_dir": "logs"
+    },
+    "cleaning_rules": {
+        "drop_duplicates": true,
+        "numeric_imputation_strategy": "median",
+        "categorical_fill_value": "Unknown"
     },
     "drift_parameters": {
         "threshold": 0.15,
         "z_threshold": 1.96,
         "exclude_cols": ["id", "host_id"]
+    },
+    "validation_rules":{
+        "required_columns": [],
+        "max_null_percentage": 0.30,
+        "check_infinite_values": true,
+        "fail_on_empty": true
     }
 }

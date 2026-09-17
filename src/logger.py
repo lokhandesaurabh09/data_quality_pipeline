@@ -1,8 +1,13 @@
 import logging
 import os
+from datetime import datetime
 
-def setup_logger(name: str = "pipeline_logger", log_file: str = "logs/pipeline.log"):
+def setup_logger(name: str = "pipeline_logger", log_file: str = None):
     os.makedirs("logs", exist_ok=True)
+
+    if log_file is None:
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        log_file = f"logs/pipeline_{timestamp}.log"
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
