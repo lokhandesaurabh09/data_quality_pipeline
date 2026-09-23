@@ -8,11 +8,24 @@ def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold:
     logger.info("Running data drift detection analysis....")
 
     if exclude_cols is None:
-        exclude_cols = ['id', 'host_id']
+        exclude_cols = []
+
+    auto_excluded = []
+    total_rows = len(baseline_df)
+
+    if total_rows > 0:
+        for col in baseline_df.columns:
+            if col not in exclude_cols:
+                unique_ratio = baseline_df[col].nunique() / total_rows
+                if unique_ratio > 0.95:
+                    auto_excluded.append(col)
+                    logger.info(f"Smart Auto-Exclude: Column '{col}' identified as high-cardinality (Unique ratio: {round(unique_ratio * 100, 2)}%). Skipping drift check.")
+
+    all_exclude_cols = list(set(exclude_cols + auto_excluded))
 
     drift_report = {}
     numeric_cols = baseline_df.select_dtypes(include=[np.number]).columns
-    numeric_cols = [col for col in numeric_cols if col not in exclude_cols]
+    numeric_cols = [col for col in numeric_cols if col not in all_exclude_cols]
 
     overall_drift_detected = False
 
@@ -69,7 +82,8 @@ def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold:
         "overall_drift_status": bool(overall_drift_detected),
         "threshold_used": float(threshold),
         "z_threshold_used": float(z_threshold),
-        "excluded_columns": exclude_cols,
+        "excluded_columns": all_exclude_cols,
+        "auto_excluded_columns": auto_excluded,
         "drift_method": "percentage_change + two_sample_z_test"
     }
     return drift_report

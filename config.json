@@ -15,7 +15,7 @@
     "drift_parameters": {
         "threshold": 0.15,
         "z_threshold": 1.96,
-        "exclude_cols": ["id", "host_id"]
+        "exclude_cols": []
     },
     "validation_rules":{
         "required_columns": [],
