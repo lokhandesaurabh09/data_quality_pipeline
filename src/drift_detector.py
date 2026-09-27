@@ -13,11 +13,20 @@ def detect_drift(baseline_df: pd.DataFrame, current_df: pd.DataFrame, threshold:
     auto_excluded = []
     total_rows = len(baseline_df)
 
+    id_patterns = ['_id' , 'id_' , '_key' , '_uuid' , 'index']
+
     if total_rows > 0:
         for col in baseline_df.columns:
             if col not in exclude_cols:
+                col_lower = col.lower()
                 unique_ratio = baseline_df[col].nunique() / total_rows
-                if unique_ratio > 0.95:
+
+                is_name_as_id = (
+                    col_lower == 'id' or
+                    any(col_lower.endswith(p) or col_lower.startswith(p) for p in id_patterns)
+                )
+
+                if unique_ratio > 0.95 or is_name_as_id:
                     auto_excluded.append(col)
                     logger.info(f"Smart Auto-Exclude: Column '{col}' identified as high-cardinality (Unique ratio: {round(unique_ratio * 100, 2)}%). Skipping drift check.")
 
