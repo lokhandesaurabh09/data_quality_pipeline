@@ -20,26 +20,18 @@ def load_config(config_path: str = "config.json") -> dict:
 
 @task(name="Ingest Raw Data", retries=3, retry_delay_seconds=5)
 def ingest_task(path: str):
-    logger = get_run_logger()
-    logger.info(f"Ingesting raw data from: {path}")
     return load_raw_data(path)
 
 @task(name="Validate Data", retries=1, retry_delay_seconds=3)
 def validate_task(df, rules: dict):
-    logger = get_run_logger()
-    logger.info("Running data quality validation...")
     return validate_data(df, rules)
 
 @task(name="Clean Data", retries=1, retry_delay_seconds=3)
 def clean_task(df, rules: dict):
-    logger = get_run_logger()
-    logger.info("Running data cleaning...")
     return clean_data(df, rules)
 
 @task(name="Detect Drift", retries=1, retry_delay_seconds=3)
 def drift_task(baseline_df, cleaned_df, params: dict):
-    logger = get_run_logger()
-    logger.info("Running drift detection...")
     return detect_drift(
         baseline_df,
         cleaned_df,
@@ -50,18 +42,14 @@ def drift_task(baseline_df, cleaned_df, params: dict):
 
 @task(name="Save to Database", retries=2, retry_delay_seconds=5)
 def save_task(df, table_name: str, db_path: str):
-    logger = get_run_logger()
-    logger.info(f"Saving to database table: {table_name}")
     return save_to_database(df, table_name=table_name, db_path=db_path)
 
 @task(name="Generate Audit Report")
 def report_task(pipeline_summary: dict, reports_dir: str, timestamp_str: str):
-    logger = get_run_logger()
     os.makedirs(reports_dir, exist_ok=True)
     report_path = os.path.join(reports_dir, f"pipeline_report_{timestamp_str}.json")
     with open(report_path, 'w') as f:
         json.dump(pipeline_summary, f, indent=4)
-    logger.info(f"Audit report saved to: {report_path}")
     return report_path
 
 # ── Flow ─────────────────────────────────────────────────
