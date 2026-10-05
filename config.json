@@ -22,5 +22,9 @@
         "max_null_percentage": 0.30,
         "check_infinite_values": true,
         "fail_on_empty": true
+    },
+    "alerting": {
+        "webhook_url": "https://webhook.site/df4f53ac-4e50-41b7-9fbd-6edf80fab1f1",
+        "enabled": true 
     }
 }
