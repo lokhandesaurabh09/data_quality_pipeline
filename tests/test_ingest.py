@@ -69,5 +69,10 @@ def test_load_raw_data_preserves_nulls(tmp_path):
 
     assert loaded_df['value'].isnull().sum() == 1
 
+def test_load_raw_data_unsupported_format(tmp_path):
+    file_path = tmp_path / "test.xyz"
+    file_path.write_text("some content")
 
+    with pytest.raises(ValueError, match="Unsupported format"):
+        load_raw_data(str(file_path))
                                 
