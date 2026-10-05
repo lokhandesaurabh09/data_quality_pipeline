@@ -11,6 +11,7 @@ def setup_logger(name: str = "pipeline_logger", log_file: str = None):
 
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
+    logger.propagate = False
 
     if not logger.handlers:
 
